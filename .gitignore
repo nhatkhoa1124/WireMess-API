@@ -1,0 +1,28 @@
+﻿# ASP.NET Core Secrets
+appsettings.json
+appsettings.*.json
+*.secret
+secrets.json
+.env
+.env.local
+
+# Build outputs
+bin/
+obj/
+[Pp]ublish/
+
+# User files
+*.user
+*.suo
+*.userprefs
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Misc
+*.log
+*.sqlite
+*.db

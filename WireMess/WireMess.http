@@ -1,0 +1,6 @@
+@WireMess_HostAddress = http://localhost:5179
+
+GET {{WireMess_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
