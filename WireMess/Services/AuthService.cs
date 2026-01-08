@@ -32,6 +32,12 @@ namespace WireMess.Services
         {
             try
             {
+                if(request.NewPassword != request.ConfirmPassword)
+                {
+                    _logger.LogWarning("New password and password confirm are different");
+                    return false;
+                }
+
                 var user = await _userRepository.GetByIdAsync(userId);
                 if(user == null)
                 {
@@ -51,6 +57,7 @@ namespace WireMess.Services
 
                 var newPassword = _passwordHasher.CreateHash(request.NewPassword);
                 user.PasswordHash = newPassword.Hash;
+                user.PasswordSalt = newPassword.Salt;
                 await _userRepository.UpdateAsync(user);
 
                 _logger.LogInformation("Password changed successfully for user {UserId}", userId);

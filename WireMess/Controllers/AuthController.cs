@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using WireMess.Models.DTOs.Request.User;
@@ -9,6 +10,8 @@ using WireMess.Utils.Extensions;
 
 namespace WireMess.Controllers
 {
+    [ApiController]
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
@@ -92,6 +95,10 @@ namespace WireMess.Controllers
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
                 var userId = User.GetUserId();
                 if(userId == null)
                 {
@@ -120,6 +127,70 @@ namespace WireMess.Controllers
                     Message = "An error occurred while fetching user profile",
                     Errors = new List<string> { ex.Message}
                 });
+            }
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+                var userId = User.GetUserId();
+                if(userId == null)
+                {
+                    return Unauthorized("User not found");
+                }
+                await _authService.LogoutAsync(userId.Value);
+                return Ok(new {Message = "Logged out successfully"});
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error during logging out");
+                return Ok(new {Message = "Logged out"});
+            }
+        }
+
+        [Authorize]
+        [HttpPost("change-password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request)
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                _logger.LogInformation($"{ userId.Value} ");
+                if(userId == null)
+                {
+                    return Unauthorized("User not found");
+                }
+                bool success = await _authService.ChangePasswordAsync(userId.Value, request);
+                if(!success)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError,
+                    new ErrorResponseDto
+                    {
+                        Code = "INTERNAL_ERROR",
+                        Message = "An unexpected error occurred"
+                    });
+                }
+
+                return Ok(new {Message = "Password changed successfully"});
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error changing password for user {UserId}", User.GetUserId());
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new ErrorResponseDto
+                    {
+                        Code = "INTERNAL_ERROR",
+                        Message = "An unexpected error occurred",
+                        Errors = new List<string>{ ex.Message }
+                    });
+
             }
         }
     }
