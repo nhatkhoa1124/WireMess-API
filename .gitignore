@@ -17,6 +17,7 @@ obj/
 *.userprefs
 
 # IDE
+.vs/
 .vscode/
 .idea/
 *.swp
