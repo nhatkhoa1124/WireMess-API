@@ -11,6 +11,5 @@ namespace WireMess.Services.Interfaces
         Task<bool> LogoutAsync(int userId);
         Task<bool> ChangePasswordAsync(int userId, ChangePasswordDto request);
         Task<bool> ValidateTokenAsync(string token);
-        Task<UserDto> GetCurrentUserAsync(int userId);
     }
 }

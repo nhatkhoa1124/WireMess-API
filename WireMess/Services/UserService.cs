@@ -2,6 +2,7 @@
 using WireMess.Models.DTOs.Response.User;
 using WireMess.Repositories.Interfaces;
 using WireMess.Services.Interfaces;
+using WireMess.Utils.Extensions;
 
 namespace WireMess.Services
 {
@@ -16,13 +17,32 @@ namespace WireMess.Services
             _logger = logger;
         }
 
+        public async Task<UserDto> GetCurrentUserAsync(int userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("User {UserId} not found", userId);
+                    return null;
+                }
+                return user.MapUserToDto();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting current user {UserId}", userId);
+                throw;
+            }
+        }
+
         public async Task<UserActiveStatusDto> GetActiveStatusByIdAsync(int userId)
         {
             try
             {
                 var user = await _userRepository.GetByIdAsync(userId);
                 if (user == null)
-                    throw new KeyNotFoundException($"User {userId} not found");
+                    throw new Exception($"User {userId} not found");
 
                 return new UserActiveStatusDto
                 {
@@ -64,6 +84,31 @@ namespace WireMess.Services
             }
         }
 
+        public async Task<UserDto> GetByIdAsync(int userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    throw new ArgumentException("User not found");
+                return new UserDto
+                {
+                    Id = user.Id,
+                    Username = user.Username,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    IsOnline = user.IsOnline,
+                    LastActive = user.LastActive,
+                    AvatarUrl = user.AvatarUrl
+                };
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error getting user by ID: {userId}", userId);
+                throw;
+            }
+        }
+
         public async Task<UserProfileResponseDto> UpdateProfileByIdAsync(int userId, UserProfileRequestDto request)
         {
             try
@@ -77,7 +122,6 @@ namespace WireMess.Services
                 user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
                 user.AvatarUrl = request.AvatarUrl ?? user.AvatarUrl;
                 user.UpdatedAt = DateTime.UtcNow;
-
 
                 var updatedUser = await _userRepository.UpdateAsync(user);
                 if (updatedUser == null)

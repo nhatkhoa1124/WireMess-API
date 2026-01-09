@@ -6,6 +6,7 @@ using WireMess.Models.Entities;
 using WireMess.Repositories.Interfaces;
 using WireMess.Services.Interfaces;
 using WireMess.Utils.AuthUtil.Interfaces;
+using WireMess.Utils.Extensions;
 
 namespace WireMess.Services
 {
@@ -67,25 +68,6 @@ namespace WireMess.Services
             {
                 _logger.LogError(ex, "Error changing password for user {UserId}", userId);
                 return false;
-            }
-        }
-
-        public async Task<UserDto> GetCurrentUserAsync(int userId)
-        {
-            try
-            {
-                var user =  await _userRepository.GetByIdAsync(userId);
-                if(user == null)
-                {
-                    _logger.LogWarning("User {UserId} not found", userId);
-                    return null;
-                }
-                return MapUserToDto(user);
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "Error getting current user {UserId}", userId);
-                throw;
             }
         }
 
@@ -246,7 +228,7 @@ namespace WireMess.Services
                 var accessToken = _jwtService.GenerateToken(user);
                 var tokenExpiry = GetTokenExpiry(accessToken);
                 string refreshToken = null;
-                var userDto = MapUserToDto(user);
+                var userDto = user.MapUserToDto();
                 return AuthResultDto.SuccessResult(
                     token:accessToken,
                     refreshToken: refreshToken,
@@ -273,21 +255,6 @@ namespace WireMess.Services
             {
                 return DateTime.UtcNow.AddHours(1);
             }
-        }
-
-        private UserDto MapUserToDto(User user)
-        {
-            if (user == null) return null;
-
-            return new UserDto
-            {
-                Username = user.Username,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                IsOnline = user.IsOnline,
-                LastActive = user.LastActive,
-                AvatarUrl = user.AvatarUrl
-            };
         }
     }
 }
