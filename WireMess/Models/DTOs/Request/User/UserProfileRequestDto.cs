@@ -1,11 +1,37 @@
-﻿namespace WireMess.Models.DTOs.Request.User
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WireMess.Models.DTOs.Request.User
 {
     public class UserProfileRequestDto
     {
-        public int Id { get; set; }
-        public string? Username { get; set; }
-        public string? Email { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? AvatarUrl { get; set; }
+        private string? _username;
+        private string? _email;
+        private string? _phoneNumber;
+        private string? _avatarUrl;
+
+        [MinLength(3), MaxLength(50)]
+        public string? Username 
+        { 
+            get => _username; 
+            set => _username = string.IsNullOrWhiteSpace(value)?null:value; 
+        }
+        [EmailAddress]
+        public string? Email
+        {
+            get => _email;
+            set => _email = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+        [Phone]
+        public string? PhoneNumber
+        {
+            get => _phoneNumber;
+            set => _phoneNumber = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
+        [Url]
+        public string? AvatarUrl
+        {
+            get => _avatarUrl;
+            set => _avatarUrl = string.IsNullOrWhiteSpace(value) ? null : value;
+        }
     }
 }
