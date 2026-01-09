@@ -87,50 +87,6 @@ namespace WireMess.Controllers
         }
 
         [Authorize]
-        [HttpGet("me")]
-        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<UserDto>> GetCurrentUser()
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                var userId = User.GetUserId();
-                if(userId == null)
-                {
-                    return Unauthorized(new ErrorResponseDto
-                    {
-                        Message = "User not authenticated"
-                    });
-                }
-
-                var user = await _authService.GetCurrentUserAsync(userId.Value);
-                if(user == null)
-                {
-                    return NotFound(new ErrorResponseDto
-                    {
-                        Message = "User not found"
-                    });
-                }
-
-                return Ok(user);
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "Error getting current user");
-                return StatusCode(500, new ErrorResponseDto
-                {
-                    Message = "An error occurred while fetching user profile",
-                    Errors = new List<string> { ex.Message}
-                });
-            }
-        }
-
-        [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {

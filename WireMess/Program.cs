@@ -50,15 +50,16 @@ namespace WireMess
                 };
             });
             builder.Services.AddAuthorization();
-
+            // Repos
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-
+            // Services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddCors(options =>
             {
