@@ -7,9 +7,8 @@ namespace WireMess.Services.Interfaces
     {
         Task<IEnumerable<ConversationDto>> GetAllAsync();
         Task<ConversationDto> GetByIdAsync(int id);
-        Task<ConversationDto> CreateGroupAsync(ConversationCreateUpdateDto request);
-        Task<ConversationDto> CreateDirectAsync();
+        Task<ConversationDto> CreateAsync(ConversationCreateUpdateDto request);
         Task<ConversationDto> UpdateGroupProfileByIdAsync(int id, ConversationCreateUpdateDto request);
-        Task<ConversationDto> DeleteByIdAsync(int id);
+        Task<bool> DeleteByIdAsync(int id);
     }
 }

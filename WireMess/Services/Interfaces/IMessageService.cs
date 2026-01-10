@@ -9,7 +9,7 @@ namespace WireMess.Services.Interfaces
         Task<IEnumerable<Message>> GetAllAsync();
         Task<MessageDto> GetByIdAsync();
         Task<MessageDto> UpdateByIdAsync(int id);
-        Task<MessageDto> CreateAsync(MessageCreateDto request, int senderId);
+        Task<MessageDto> CreateAsync(int senderId, MessageCreateDto request);
         Task<bool> DeleteByIdAsync();
     }
 }

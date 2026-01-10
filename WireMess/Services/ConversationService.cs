@@ -19,42 +19,16 @@ namespace WireMess.Services
             _logger = logger;
         }
 
-        public async Task<ConversationDto> CreateDirectAsync()
+        public async Task<ConversationDto> CreateAsync(ConversationCreateUpdateDto request)
         {
             try
             {
+                bool hasRequest = request != null;
                 var newConversation = new Conversation
                 {
-                    ConversationName = null,
-                    TypeId = (int)ConversationTypeEnum.Direct,
-                    AvatarUrl = null,
-                    LastMessageAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-
-                var createdConversation = await _conversationRepository.CreateAsync(newConversation);
-                if (createdConversation == null)
-                    throw new Exception("Error creating direct conversation async");
-
-                return createdConversation.MapConversationToDto();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating direct conversation");
-                throw;
-            }
-        }
-
-        public async Task<ConversationDto> CreateGroupAsync(ConversationCreateUpdateDto request)
-        {
-            try
-            {
-                var newConversation = new Conversation
-                {
-                    ConversationName = request.ConversationName,
-                    TypeId = (int)ConversationTypeEnum.Group,
-                    AvatarUrl = request.AvatarUrl,
+                    ConversationName = request?.ConversationName,
+                    TypeId = hasRequest ? (int)ConversationTypeEnum.Group : (int)ConversationTypeEnum.Direct,
+                    AvatarUrl = request?.AvatarUrl,
                     LastMessageAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -74,7 +48,7 @@ namespace WireMess.Services
             }
         }
 
-        public async Task<ConversationDto> DeleteByIdAsync(int id)
+        public async Task<bool> DeleteByIdAsync(int id)
         {
             try
             {
@@ -82,12 +56,11 @@ namespace WireMess.Services
                 if (conversation == null)
                     throw new ArgumentException($"Conversation not found with ID: {id}");
                 var deleted = await _conversationRepository.DeleteAsync(id);
-                if (deleted == null)
-                    throw new InvalidOperationException("Error deleting conversation");
-
-                return deleted.MapConversationToDto();
+                if (!deleted)
+                    return false;
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting conversation");
                 throw;
@@ -119,7 +92,7 @@ namespace WireMess.Services
                     throw new ArgumentException($"Conversation not found with ID: {id}");
                 return conversation.MapConversationToDto();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting conversation with ID: {id}", id);
                 throw;
@@ -133,7 +106,7 @@ namespace WireMess.Services
                 var conversation = await _conversationRepository.GetByIdAsync(id);
                 if (conversation == null)
                     throw new ArgumentException($"Conversation not found with ID: {id}");
-                if(conversation.TypeId == (int) ConversationTypeEnum.Direct)
+                if (conversation.TypeId == (int)ConversationTypeEnum.Direct)
                 {
                     _logger.LogWarning("Cannot update profile of direct conversation");
                     throw new ArgumentException($"Conversation update failed with ID: {id}");
@@ -148,7 +121,7 @@ namespace WireMess.Services
 
                 return updatedConversation.MapConversationToDto();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating group profile");
                 throw;

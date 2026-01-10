@@ -66,16 +66,7 @@ namespace WireMess.Services
                 if (users == null)
                     return Enumerable.Empty<UserDto>();
 
-                return users.Select(u => new UserDto
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    PhoneNumber = u.PhoneNumber,
-                    IsOnline = u.IsOnline,
-                    LastActive = u.LastActive,
-                    AvatarUrl = u.AvatarUrl
-                }).ToList();
+                return users.Select(u => u.MapUserToDto()).ToList();
             }
             catch(Exception ex)
             {

@@ -40,12 +40,12 @@ namespace WireMess.Repositories
             }
         }
 
-        public async Task<Conversation?> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             try
             {
                 var conversation = await _context.Conversations.FindAsync(id);
-                if (conversation == null) return null;
+                if (conversation == null) return false;
 
                 conversation.DeletedAt = DateTime.UtcNow;
                 conversation.IsDeleted = true;
@@ -53,12 +53,12 @@ namespace WireMess.Repositories
                 await _context.SaveChangesAsync();
                 _context.Entry(conversation).State = EntityState.Detached;
 
-                return conversation;
+                return true;
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex, "Error deleting conversation ID {id}", id);
-                throw;
+                return false;
             }
         }
 
@@ -110,6 +110,24 @@ namespace WireMess.Repositories
             }
         }
 
+        public async Task<ConversationType?> GetTypeByNameAsync(string name)
+        {
+            try
+            {
+                var type = await _context.ConversationTypes
+                    .FirstOrDefaultAsync(c => c.TypeName == name);
+                if (type == null)
+                    throw new KeyNotFoundException("No matching type name found");
+
+                return type;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error getting conversation type of name {name}", name);
+                throw;
+            }
+        }
+
         public async Task<Conversation> UpdateAsync(Conversation conversation)
         {
             try
@@ -128,6 +146,27 @@ namespace WireMess.Repositories
             catch(Exception ex)
             {
                 _logger.LogError(ex, "Error updating conversation ID {conversationId}", conversation.Id);
+                throw;
+            }
+        }
+
+        public async Task<Conversation> UpdateLastMessageTimeByIdAsync(int id)
+        {
+            try
+            {
+                var oldConversation = await _context.Conversations.FindAsync(id);
+                if (oldConversation == null) throw new KeyNotFoundException($"Conversation with ID {id} not found");
+
+                oldConversation.LastMessageAt = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                _context.Entry(oldConversation).State = EntityState.Detached;
+
+                return oldConversation;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating conversation ID {conversationId}", id);
                 throw;
             }
         }

@@ -9,7 +9,7 @@ using WireMess.Utils.Extensions;
 namespace WireMess.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -23,14 +23,22 @@ namespace WireMess.Controllers
 
         [Authorize]
         [HttpGet]
-        public async Task<ActionResult<UserDto>> GetAllUser()
+        public async Task<ActionResult<IEnumerable<UserPublicDto>>> GetAllUsersPublic()
         {
             try
             {
                 var users = await _userService.GetAllAsync();
-                return Ok(users);
+                var publicUsers = users.Select(u => new UserPublicDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    IsOnline = u.IsOnline,
+                    LastActive = u.LastActive,
+                    AvatarUrl = u.AvatarUrl
+                }).ToList();
+                return Ok(publicUsers);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all users");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -39,9 +47,6 @@ namespace WireMess.Controllers
 
         [Authorize]
         [HttpGet("me")]
-        [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(typeof(ErrorResponseDto), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             try
@@ -49,19 +54,13 @@ namespace WireMess.Controllers
                 var userId = User.GetUserId();
                 if (userId == null)
                 {
-                    return Unauthorized(new ErrorResponseDto
-                    {
-                        Message = "User not authenticated"
-                    });
+                    return Unauthorized("User not authenticated");
                 }
 
                 var user = await _userService.GetCurrentUserAsync(userId.Value);
                 if (user == null)
                 {
-                    return NotFound(new ErrorResponseDto
-                    {
-                        Message = "User not found"
-                    });
+                    return NotFound("User not found");
                 }
 
                 return Ok(user);
@@ -114,7 +113,7 @@ namespace WireMess.Controllers
         }
 
         [Authorize]
-        [HttpPost("me/update")]
+        [HttpPut("me/update")]
         public async Task<ActionResult<UserProfileResponseDto>> UpdateCurrentUserProfile(UserProfileRequestDto request)
         {
             try
@@ -127,7 +126,7 @@ namespace WireMess.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 return Ok(updatedUser);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user profile ID: {userId}", User.GetUserId());
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -135,7 +134,7 @@ namespace WireMess.Controllers
         }
 
         [Authorize]
-        [HttpPost("update/{id}")]
+        [HttpPut("update/{id}")]
         public async Task<ActionResult<UserProfileResponseDto>> UpdateUserProfileById(int id, UserProfileRequestDto request)
         {
             try
