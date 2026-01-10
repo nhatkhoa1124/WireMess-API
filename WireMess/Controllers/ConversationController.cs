@@ -30,10 +30,7 @@ namespace WireMess.Controllers
                 if (createdConversation == null)
                     return StatusCode(StatusCodes.Status500InternalServerError);
 
-                return CreatedAtAction(
-                    nameof(GetByIdAsync), 
-                    new {id = createdConversation.Id},
-                    createdConversation);
+                return Created($"/api/conversations/{createdConversation.Id}", createdConversation);
             }
             catch(Exception ex)
             {
@@ -69,7 +66,7 @@ namespace WireMess.Controllers
                 var conversation = await _conversationService.GetByIdAsync(id);
                 if(conversation == null)
                     return NotFound("Conversation not found");
-
+                return Ok(conversation);
             }
             catch (Exception ex)
             {
@@ -84,7 +81,10 @@ namespace WireMess.Controllers
         {
             try
             {
-
+                var updatedConversation = await _conversationService.UpdateGroupProfileByIdAsync(id, request);
+                if (updatedConversation == null)
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                return Ok(updatedConversation);
             }
             catch (Exception ex)
             {
@@ -99,7 +99,11 @@ namespace WireMess.Controllers
         {
             try
             {
+                var deleted = await _conversationService.DeleteByIdAsync(id);
+                if (!deleted)
+                    return NotFound($"Conversation ID: {id} not found");
 
+                return NoContent();
             }
             catch (Exception ex)
             {
