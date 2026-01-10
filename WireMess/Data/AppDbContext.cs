@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WireMess.Models.Entities;
+using WireMess.Models.Enums;
 
 namespace WireMess.Data
 {
-    public class AppDbContext : DbContext 
+    public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
@@ -21,6 +22,24 @@ namespace WireMess.Data
         {
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            modelBuilder.Entity<ConversationType>().HasData(
+            new ConversationType
+            {
+                Id = (int)ConversationTypeEnum.Direct,
+                TypeName = nameof(ConversationTypeEnum.Direct),
+                Description = "One-on-one chat",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            },
+            new ConversationType
+            {
+                Id = (int)ConversationTypeEnum.Group,
+                TypeName = nameof(ConversationTypeEnum.Group),
+                Description = "Multi-user chat",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -30,11 +49,11 @@ namespace WireMess.Data
                 .Where(e => e.Entity is BaseEntity &&
                 (e.State == EntityState.Added || e.State == EntityState.Modified));
 
-            foreach(var entityEntry in entries)
+            foreach (var entityEntry in entries)
             {
                 var entity = (BaseEntity)entityEntry.Entity;
-                
-                if(entityEntry.State == EntityState.Added)
+
+                if (entityEntry.State == EntityState.Added)
                 {
                     entity.CreatedAt = DateTime.UtcNow;
                     entity.UpdatedAt = DateTime.UtcNow;
