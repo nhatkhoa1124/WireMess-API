@@ -4,9 +4,9 @@ namespace WireMess.Models.DTOs.Request.Conversation
 {
     public class ConversationCreateUpdateDto
     {
-        [Required]
-        [StringLength(30, MinimumLength = 3)]
+        [StringLength(50)]
         public string ConversationName { get; set; }
+        [StringLength(200)]
         public string AvatarUrl { get; set; }
     }
 }
