@@ -8,6 +8,8 @@ namespace WireMess.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<UserConversation> builder)
         {
+            builder.ConfigureBaseEntity();
+            
             builder.ToTable("UserConversations");
             builder.HasKey(uc => new {uc.UserId, uc.ConversationId});
         }

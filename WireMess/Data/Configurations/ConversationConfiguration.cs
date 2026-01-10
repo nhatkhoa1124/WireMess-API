@@ -14,11 +14,13 @@ namespace WireMess.Data.Configurations
             builder.HasKey(c => c.Id);
 
             builder.Property(c => c.ConversationName)
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .IsRequired(false);
             builder.Property(c => c.LastMessageAt)
                 .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
             builder.Property(c => c.AvatarUrl)
-                .HasMaxLength(500);
+                .HasMaxLength(500)
+                .IsRequired(false);
 
             builder.HasMany(c => c.Messages)
                 .WithOne(m => m.Conversation)
@@ -27,7 +29,8 @@ namespace WireMess.Data.Configurations
             builder.HasMany(c => c.UserConversation)
                 .WithOne(uc => uc.Conversation)
                 .HasForeignKey(uc => uc.ConversationId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade)
+                .IsRequired(false);
             builder.HasOne(c => c.ConversationType)
                 .WithMany(ct => ct.Conversations)
                 .HasForeignKey(c => c.TypeId)

@@ -27,9 +27,11 @@ namespace WireMess.Data.Configurations
                 .HasMaxLength(255)
                 .IsRequired();
             builder.Property(u => u.PhoneNumber)
-                .HasMaxLength(20);
+                .HasMaxLength(20)
+                .IsRequired(false);
             builder.Property(u => u.AvatarUrl)
-                .HasMaxLength(500);
+                .HasMaxLength(500)
+                .IsRequired(false);
             builder.Property(u => u.IsOnline)
                 .HasDefaultValue(false);
             builder.Property(u => u.LastActive)
