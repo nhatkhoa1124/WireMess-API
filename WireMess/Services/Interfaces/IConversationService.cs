@@ -9,7 +9,7 @@ namespace WireMess.Services.Interfaces
         Task<ConversationDto> GetByIdAsync(int id);
         Task<ConversationDto> CreateGroupAsync(ConversationCreateUpdateDto request);
         Task<ConversationDto> CreateDirectAsync();
-        Task<ConversationDto> UpdateGroupProfileAsync(ConversationCreateUpdateDto request);
-        Task<bool> DeleteByIdAsync(int id);
+        Task<ConversationDto> UpdateGroupProfileByIdAsync(int id, ConversationCreateUpdateDto request);
+        Task<ConversationDto> DeleteByIdAsync(int id);
     }
 }
