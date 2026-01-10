@@ -23,6 +23,10 @@ namespace WireMess.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+            modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
+            modelBuilder.Entity<Message>().HasQueryFilter(m => !m.IsDeleted);
+            modelBuilder.Entity<Attachment>().HasQueryFilter(a => !a.IsDeleted);
+            modelBuilder.Entity<Conversation>().HasQueryFilter(c => !c.IsDeleted);
             modelBuilder.Entity<ConversationType>().HasData(
             new ConversationType
             {
