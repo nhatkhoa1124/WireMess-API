@@ -11,6 +11,7 @@ namespace WireMess.Utils.Extensions
 
             return new UserDto
             {
+                Id = user.Id,
                 Username = user.Username,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
