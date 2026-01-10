@@ -23,12 +23,14 @@ namespace WireMess.Services
         {
             try
             {
-                bool hasRequest = request != null;
+                bool isDirect = (request == null) ||
+                    string.IsNullOrWhiteSpace(request.ConversationName);
+
                 var newConversation = new Conversation
                 {
-                    ConversationName = request?.ConversationName,
-                    TypeId = hasRequest ? (int)ConversationTypeEnum.Group : (int)ConversationTypeEnum.Direct,
-                    AvatarUrl = request?.AvatarUrl,
+                    ConversationName = isDirect ? null : request.ConversationName,
+                    TypeId = isDirect ? (int)ConversationTypeEnum.Direct : (int)ConversationTypeEnum.Group,
+                    AvatarUrl = isDirect ? null : request.AvatarUrl,
                     LastMessageAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -112,8 +114,8 @@ namespace WireMess.Services
                     throw new ArgumentException($"Conversation update failed with ID: {id}");
                 }
 
-                conversation.ConversationName = request.ConversationName;
-                conversation.AvatarUrl = request.AvatarUrl;
+                conversation.ConversationName = request.ConversationName ?? conversation.ConversationName;
+                conversation.AvatarUrl = request.AvatarUrl ?? conversation.AvatarUrl;
 
                 var updatedConversation = await _conversationRepository.UpdateAsync(conversation);
                 if (updatedConversation == null)
