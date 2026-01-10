@@ -14,8 +14,7 @@ namespace WireMess.Data.Configurations
             builder.HasKey(c => c.Id);
 
             builder.Property(c => c.ConversationName)
-                .HasMaxLength(100)
-                .IsRequired();
+                .HasMaxLength(100);
             builder.Property(c => c.LastMessageAt)
                 .HasDefaultValueSql("NOW() AT TIME ZONE 'UTC'");
             builder.Property(c => c.AvatarUrl)

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using WireMess.Models.DTOs.Request.User;
 using WireMess.Models.DTOs.Response;
 using WireMess.Models.DTOs.Response.User;
-using WireMess.Services;
 using WireMess.Services.Interfaces;
 using WireMess.Utils.Extensions;
 
