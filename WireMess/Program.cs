@@ -117,7 +117,6 @@ namespace WireMess
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.MapOpenApi();
@@ -128,30 +127,20 @@ namespace WireMess
                     try
                     {
                         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                        Console.WriteLine("Checking database status...");
-
-                        // Check if database exists, if not create it
                         if (!dbContext.Database.CanConnect())
                         {
-                            Console.WriteLine("Database does not exist. Creating database and applying migrations...");
                             dbContext.Database.Migrate();
-                            Console.WriteLine("Database created and migrations applied successfully.");
                         }
                         else
                         {
-                            // Database exists, check if it needs migrations
                             try
                             {
-                                // Try to ensure the database is created (this will create tables if they don't exist)
                                 var applied = dbContext.Database.GetAppliedMigrations();
                                 var pending = dbContext.Database.GetPendingMigrations();
 
                                 if (pending.Any())
                                 {
-                                    Console.WriteLine($"Applying {pending.Count()} pending migration(s)...");
                                     dbContext.Database.Migrate();
-                                    Console.WriteLine("Migrations applied successfully.");
                                 }
                                 else
                                 {
@@ -160,17 +149,13 @@ namespace WireMess
                             }
                             catch (Exception ex)
                             {
-                                // If we can't read migration history, the database is empty or corrupted
-                                Console.WriteLine($"Unable to read migration history: {ex.Message}");
-                                Console.WriteLine("Applying all migrations...");
+
                                 dbContext.Database.Migrate();
-                                Console.WriteLine("Migrations applied successfully.");
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error during database migration: {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
