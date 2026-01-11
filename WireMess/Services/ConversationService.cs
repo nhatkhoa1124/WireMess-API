@@ -11,11 +11,16 @@ namespace WireMess.Services
     public class ConversationService : IConversationService
     {
         private readonly IConversationRepository _conversationRepository;
+        private readonly IUserConversationRepository _userConversationRepository;
         private readonly ILogger<ConversationService> _logger;
 
-        public ConversationService(IConversationRepository conversationRepository, ILogger<ConversationService> logger)
+
+        public ConversationService(IConversationRepository conversationRepository,
+            IUserConversationRepository userConversationRepository,
+            ILogger<ConversationService> logger)
         {
             _conversationRepository = conversationRepository;
+            _userConversationRepository = userConversationRepository;
             _logger = logger;
         }
 
@@ -23,8 +28,17 @@ namespace WireMess.Services
         {
             try
             {
+                if(request.UserIds == null ||!request.UserIds.Any())
+                {
+                    throw new ArgumentException("At least one user is required to create a conversation");
+                }
                 bool isDirect = (request == null) ||
                     string.IsNullOrWhiteSpace(request.ConversationName);
+
+                if (isDirect && request.UserIds.Count() != 2)
+                    throw new ArgumentException("Direct conversations must have exactly 2 participants");
+                if (!isDirect && request.UserIds.Count() < 3)
+                    throw new ArgumentException("Group conversations must have at least 3 participants");                
 
                 var newConversation = new Conversation
                 {
@@ -39,6 +53,18 @@ namespace WireMess.Services
                 var createdConversation = await _conversationRepository.CreateAsync(newConversation);
                 if (createdConversation == null)
                     throw new Exception("Error creating direct conversation async");
+
+                foreach(var userId in request.UserIds)
+                {
+                    var userConvesation = new UserConversation
+                    {
+                        UserId = userId,
+                        ConversationId = createdConversation.Id,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    await _userConversationRepository.CreateAsync(userConvesation);
+                }
 
                 return createdConversation.MapConversationToDto();
 
