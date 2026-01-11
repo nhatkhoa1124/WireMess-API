@@ -8,5 +8,6 @@ namespace WireMess.Models.DTOs.Request.Conversation
         public string ConversationName { get; set; }
         [StringLength(200)]
         public string AvatarUrl { get; set; }
+        public IEnumerable<int> UserIds { get; set; } = new List<int>();
     }
 }

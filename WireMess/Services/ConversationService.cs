@@ -24,11 +24,32 @@ namespace WireMess.Services
             _logger = logger;
         }
 
+        public async Task<bool> AddUserToConversationByIdAsync(int userId, int conversationId)
+        {
+            try
+            {
+                var addedUserConversation = await _userConversationRepository.
+                    AddUserToConversationAsync(userId,conversationId);
+                if(!addedUserConversation)
+                {
+                    _logger.LogWarning("Error adding user to conversation");
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error adding user with ID: {userId} to conversation ID: {conversationId}",
+                  userId, conversationId);
+                throw;
+            }
+        }
+
         public async Task<ConversationDto> CreateAsync(ConversationCreateUpdateDto request)
         {
             try
             {
-                if(request.UserIds == null ||!request.UserIds.Any())
+                if (request.UserIds == null || !request.UserIds.Any())
                 {
                     throw new ArgumentException("At least one user is required to create a conversation");
                 }
@@ -38,7 +59,7 @@ namespace WireMess.Services
                 if (isDirect && request.UserIds.Count() != 2)
                     throw new ArgumentException("Direct conversations must have exactly 2 participants");
                 if (!isDirect && request.UserIds.Count() < 3)
-                    throw new ArgumentException("Group conversations must have at least 3 participants");                
+                    throw new ArgumentException("Group conversations must have at least 3 participants");
 
                 var newConversation = new Conversation
                 {
@@ -54,7 +75,7 @@ namespace WireMess.Services
                 if (createdConversation == null)
                     throw new Exception("Error creating direct conversation async");
 
-                foreach(var userId in request.UserIds)
+                foreach (var userId in request.UserIds)
                 {
                     var userConvesation = new UserConversation
                     {
@@ -83,9 +104,15 @@ namespace WireMess.Services
                 var conversation = await _conversationRepository.GetByIdAsync(id);
                 if (conversation == null)
                     throw new ArgumentException($"Conversation not found with ID: {id}");
-                var deleted = await _conversationRepository.DeleteAsync(id);
-                if (!deleted)
+                var deletedUserConversation = await _userConversationRepository.DeleteAllByConversationId(id);
+                var deletedConversation = await _conversationRepository.DeleteAsync(id);
+
+                if (!deletedConversation || !deletedUserConversation)
+                {
+                    _logger.LogWarning("Error deleting conversation by ID: {id}", id);
                     return false;
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -123,6 +150,32 @@ namespace WireMess.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting conversation with ID: {id}", id);
+                throw;
+            }
+        }
+
+        public async Task<bool> RemoveUserFromConversationByIdAsync(int userId, int conversationId)
+        {
+            try
+            {
+                var deletedUserConversation = await _userConversationRepository.RemoveUserFromConversationAsync(userId, conversationId);
+                if(!deletedUserConversation)
+                {
+                    _logger.LogWarning("Error removing user from conversation");
+                    return false;
+                }
+                var deletedConversation = await _conversationRepository.DeleteAsync(conversationId);
+                if(!deletedConversation)
+                {
+                    _logger.LogWarning("Error deleting conversation");
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error removing user with ID: {userId} from conversation ID: {conversationId}",
+                  userId, conversationId);
                 throw;
             }
         }
