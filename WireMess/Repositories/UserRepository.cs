@@ -22,7 +22,6 @@ namespace WireMess.Repositories
             {
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
-                _context.Entry(user).State = EntityState.Detached;
                 return user;
             }
             catch (Exception ex)
@@ -110,8 +109,6 @@ namespace WireMess.Repositories
                 existingUser.AvatarUrl = user.AvatarUrl;
 
                 await _context.SaveChangesAsync();
-                _context.Entry(existingUser).State = EntityState.Detached;
-
                 return existingUser;
             }
             catch(Exception ex)

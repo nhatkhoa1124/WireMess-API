@@ -50,9 +50,8 @@ namespace WireMess.Repositories
                 conversation.DeletedAt = DateTime.UtcNow;
                 conversation.IsDeleted = true;
 
+                _context.Conversations.Update(conversation);
                 await _context.SaveChangesAsync();
-                _context.Entry(conversation).State = EntityState.Detached;
-
                 return true;
             }
             catch(Exception ex)
