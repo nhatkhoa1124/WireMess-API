@@ -31,6 +31,22 @@ namespace WireMess.Repositories
             }
         }
 
+        public async Task<bool> ExistsAsync(int id)
+        {
+            try
+            {
+                var success = await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+                if (success == null)
+                    return false;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking for user existence");
+                throw;
+            }
+        }
+
         public async Task<IEnumerable<User>> GetAllAsync()
         {
             try

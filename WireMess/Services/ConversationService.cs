@@ -12,15 +12,18 @@ namespace WireMess.Services
     {
         private readonly IConversationRepository _conversationRepository;
         private readonly IUserConversationRepository _userConversationRepository;
+        private readonly IUserRepository _userRepository;
         private readonly ILogger<ConversationService> _logger;
 
 
         public ConversationService(IConversationRepository conversationRepository,
             IUserConversationRepository userConversationRepository,
+            IUserRepository userRepository,
             ILogger<ConversationService> logger)
         {
             _conversationRepository = conversationRepository;
             _userConversationRepository = userConversationRepository;
+            _userRepository = userRepository;
             _logger = logger;
         }
 
@@ -29,8 +32,8 @@ namespace WireMess.Services
             try
             {
                 var addedUserConversation = await _userConversationRepository.
-                    AddUserToConversationAsync(userId,conversationId);
-                if(!addedUserConversation)
+                    AddUserToConversationAsync(userId, conversationId);
+                if (!addedUserConversation)
                 {
                     _logger.LogWarning("Error adding user to conversation");
                     return false;
@@ -53,6 +56,15 @@ namespace WireMess.Services
                 {
                     throw new ArgumentException("At least one user is required to create a conversation");
                 }
+                foreach (var userId in request.UserIds)
+                {
+                    var userExists = await _userRepository.ExistsAsync(userId);
+                    if (!userExists)
+                        throw new ArgumentException($"User with ID {userId} does not exist");
+                }
+                if (request.UserIds.Distinct().Count() != request.UserIds.Count())
+                    throw new ArgumentException("Duplicate user IDs are not allowed");
+
                 bool isDirect = (request == null) ||
                     string.IsNullOrWhiteSpace(request.ConversationName);
 
@@ -159,17 +171,12 @@ namespace WireMess.Services
             try
             {
                 var deletedUserConversation = await _userConversationRepository.RemoveUserFromConversationAsync(userId, conversationId);
-                if(!deletedUserConversation)
+                if (!deletedUserConversation)
                 {
                     _logger.LogWarning("Error removing user from conversation");
                     return false;
                 }
-                var deletedConversation = await _conversationRepository.DeleteAsync(conversationId);
-                if(!deletedConversation)
-                {
-                    _logger.LogWarning("Error deleting conversation");
-                    return false;
-                }
+                // Get members in a conversation, if <2 then delete the conversation
                 return true;
             }
             catch (Exception ex)

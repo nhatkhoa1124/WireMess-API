@@ -10,5 +10,6 @@ namespace WireMess.Repositories.Interfaces
         Task<IEnumerable<User>> GetAllAsync();
         Task<User> CreateAsync(User user);
         Task<User> UpdateAsync(User user);
+        Task<bool> ExistsAsync(int id);
     }
 }

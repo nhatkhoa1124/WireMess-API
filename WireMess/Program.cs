@@ -54,6 +54,7 @@ namespace WireMess
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IUserConversationRepository, UserConversationRepository>();
             // Services
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IJwtService, JwtService>();

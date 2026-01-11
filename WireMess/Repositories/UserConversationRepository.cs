@@ -50,6 +50,10 @@ namespace WireMess.Repositories
         {
             try
             {
+                var userId = await _context.Users.FirstOrDefaultAsync(uc => uc.Id == userConversation.UserId);
+                if (userId == null)
+                    throw new ArgumentException("User does not exists");
+
                 await _context.UserConversations.AddAsync(userConversation);
                 await _context.SaveChangesAsync();
                 return userConversation;
