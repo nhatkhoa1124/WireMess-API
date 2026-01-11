@@ -13,7 +13,7 @@ namespace WireMess.Controllers
         private readonly IConversationService _conversationService;
         private readonly ILogger<ConversationController> _logger;
 
-        public ConversationController(IConversationService conversationService, 
+        public ConversationController(IConversationService conversationService,
             ILogger<ConversationController> logger)
         {
             _conversationService = conversationService;
@@ -32,7 +32,7 @@ namespace WireMess.Controllers
 
                 return Created($"/api/conversations/{createdConversation.Id}", createdConversation);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating new conversation");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -64,7 +64,7 @@ namespace WireMess.Controllers
             try
             {
                 var conversation = await _conversationService.GetByIdAsync(id);
-                if(conversation == null)
+                if (conversation == null)
                     return NotFound("Conversation not found");
                 return Ok(conversation);
             }
@@ -108,6 +108,50 @@ namespace WireMess.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting conversation ID: {id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [Authorize]
+        [HttpPost("{id}/members/{userId}")]
+        public async Task<IActionResult> AddMemberToConversationAsync(int userId, int id)
+        {
+            try
+            {
+                var success = await _conversationService.AddUserToConversationByIdAsync(userId, id);
+                if (!success)
+                {
+                    _logger.LogWarning("Error adding member to conversation");
+                    return BadRequest("Failed to add member to conversation");
+                }
+                return Ok("Member added successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error adding member ID: {userId} to conversation ID: {conversationId}",
+                    userId, id);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [Authorize]
+        [HttpDelete("{id}/members/{userId}")]
+        public async Task<IActionResult> RemoveMemberToConversationAsync(int id, int userId)
+        {
+            try
+            {
+                var success = await _conversationService.RemoveUserFromConversationByIdAsync(userId, id);
+                if (!success)
+                {
+                    _logger.LogWarning("Error removing member from conversation");
+                    return NotFound("Failed to remove member from conversation");
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error removing member ID: {userId} from conversation ID: {conversationId}",
+                    userId, id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
