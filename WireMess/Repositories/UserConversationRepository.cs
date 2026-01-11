@@ -61,6 +61,35 @@ namespace WireMess.Repositories
             }
         }
 
+        public async Task<bool> DeleteAllByConversationId(int conversationId)
+        {
+            try
+            {
+                var userConversations = await _context.UserConversations
+                    .Where(uc => uc.ConversationId == conversationId)
+                    .ToListAsync();
+                if (!userConversations.Any())
+                {
+                    _logger.LogWarning("No conversation with ID: {conversationId} found", conversationId);
+                    return false;
+                }
+
+                foreach(var uc in userConversations)
+                {
+                    uc.IsDeleted = true;
+                    uc.DeletedAt = DateTime.UtcNow;
+                }
+                _context.UserConversations.UpdateRange(userConversations);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting all conversations with ID: {conversationId}", conversationId);
+                throw;
+            }
+        }
+
         public async Task<bool> DeleteByKeyAsync(int userId, int conversationId)
         {
             try
