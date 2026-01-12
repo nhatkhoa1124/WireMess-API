@@ -45,21 +45,20 @@ namespace WireMess.Repositories
             }
         }
 
-        public async Task<Message?> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
             try
             {
                 var message = await _context.Messages
                     .FirstOrDefaultAsync(m => m.Id == id);
-                if (message == null) return null;
+                if (message == null)
+                    return false;
 
                 message.DeletedAt = DateTime.UtcNow;
                 message.IsDeleted = true;
 
                 await _context.SaveChangesAsync();
-                _context.Entry(message).State = EntityState.Detached;
-
-                return message;
+                return true;
             }
             catch (Exception ex)
             {
@@ -112,7 +111,7 @@ namespace WireMess.Repositories
                     .Include(m => m.Sender)
                     .Where(m => m.ConversationId == conversationId)
                     .OrderByDescending(m => m.CreatedAt)
-                    .Skip((page-1)*pageSize)
+                    .Skip((page - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
             }
