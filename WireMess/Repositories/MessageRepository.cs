@@ -45,76 +45,13 @@ namespace WireMess.Repositories
             }
         }
 
-        public async Task<Message> CreateWithAttachmentsAsync(Message message, IEnumerable<IFormFile> files)
-        {
-            try
-            {
-                using var transaction = await _context.Database.BeginTransactionAsync();
-
-                try
-                {
-                    _context.Messages.Add(message);
-                    await _context.SaveChangesAsync();
-
-                    var attachmentEntities = new List<Attachment>();
-                    foreach (var file in files)
-                    {
-                        var storagePath = await _fileStorage.UploadAsync(file);
-                        var attachment = new Attachment
-                        {
-                            FileName = file.FileName,
-                            FileSize = file.Length,
-                            StoragePath = storagePath,
-                            MessageId = message.Id,
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow
-                        };
-
-                        attachmentEntities.Add(attachment);
-                    }
-
-                    if (attachmentEntities.Any())
-                    {
-                        await _context.Attachments.AddRangeAsync(attachmentEntities);
-                        await _context.SaveChangesAsync();
-                        message.Attachments = attachmentEntities;
-                    }
-
-                    await transaction.CommitAsync();
-                    return message;
-                }
-                catch
-                {
-                    await transaction.RollbackAsync();
-                    throw;
-                }
-            }
-            catch (DbException dbEx)
-            {
-                _logger.LogError(dbEx, "Database error creating message with attachments:"
-                    + "Message: {messageId}", message.Id);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating message with attachments");
-                throw;
-            }
-        }
-
         public async Task<Message?> DeleteAsync(int id)
         {
             try
             {
                 var message = await _context.Messages
-                    .Include(m => m.Attachments)
                     .FirstOrDefaultAsync(m => m.Id == id);
                 if (message == null) return null;
-
-                foreach (var attachment in message.Attachments)
-                {
-                    await _fileStorage.DeleteAsync(attachment.StoragePath);
-                }
 
                 message.DeletedAt = DateTime.UtcNow;
                 message.IsDeleted = true;
@@ -153,7 +90,6 @@ namespace WireMess.Repositories
             {
                 return await _context.Messages
                     .AsNoTracking()
-                    .Include(m => m.Attachments)
                     .Include(m => m.Sender)
                     .Include(m => m.Conversation)
                     .FirstOrDefaultAsync(m => m.Id == id);
