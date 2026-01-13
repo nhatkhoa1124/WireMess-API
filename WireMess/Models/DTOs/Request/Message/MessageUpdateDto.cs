@@ -6,7 +6,5 @@ namespace WireMess.Models.DTOs.Request.Message
     {
         [Required]
         public string Content { get; set; }
-        [Required]
-        public int ConversationId { get; set; }
     }
 }

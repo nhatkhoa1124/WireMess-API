@@ -15,7 +15,6 @@ namespace WireMess.Services
         private readonly IUserRepository _userRepository;
         private readonly ILogger<ConversationService> _logger;
 
-
         public ConversationService(IConversationRepository conversationRepository,
             IUserConversationRepository userConversationRepository,
             IUserRepository userRepository,
