@@ -9,5 +9,6 @@
 
         public User? Sender { get; set; }
         public Conversation? Conversation { get; set; }
+        public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
     }
 }
