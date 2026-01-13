@@ -10,6 +10,7 @@ using WireMess.Utils.AuthUtil.Interfaces;
 using WireMess.Utils.AuthUtil;
 using WireMess.Services;
 using Microsoft.OpenApi.Models;
+using WireMess.Hubs;
 
 namespace WireMess
 {
@@ -50,6 +51,7 @@ namespace WireMess
                 };
             });
             builder.Services.AddAuthorization();
+            builder.Services.AddSignalR();
             // Repos
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
@@ -177,6 +179,7 @@ namespace WireMess
             app.UseAuthorization();
             app.MapHealthChecks("/health");
             app.Map("/", () => Results.Redirect("/swagger"));
+            app.MapHub<ChatHub>("/chatHub");
             app.MapControllers();
 
             app.Run();
