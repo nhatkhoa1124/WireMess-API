@@ -155,7 +155,7 @@ namespace WireMess.Hubs
                 _logger.LogError(ex, "Error sending message");
                 await Clients.Caller.SendAsync("Error", "Failed to send message");
             }
-        }
+        } 
 
         public async Task DeleteMessage(int messageId, int conversationId)
         {

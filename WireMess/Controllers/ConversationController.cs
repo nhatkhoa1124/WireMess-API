@@ -122,7 +122,6 @@ namespace WireMess.Controllers
                 var deleted = await _conversationService.DeleteByIdAsync(id);
                 if (!deleted)
                     return NotFound($"Conversation ID: {id} not found");
-
                 return NoContent();
             }
             catch (Exception ex)
