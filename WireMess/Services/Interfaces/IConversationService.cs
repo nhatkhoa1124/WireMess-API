@@ -6,6 +6,7 @@ namespace WireMess.Services.Interfaces
     public interface IConversationService
     {
         Task<IEnumerable<ConversationDto>> GetAllAsync();
+        Task<IEnumerable<ConversationDto>> GetAllByUserIdAsync(int id);
         Task<ConversationDto> GetByIdAsync(int id);
         Task<ConversationDto> CreateAsync(ConversationCreateUpdateDto request);
         Task<ConversationDto> UpdateGroupProfileByIdAsync(int id, ConversationCreateUpdateDto request);

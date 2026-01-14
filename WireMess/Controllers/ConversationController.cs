@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WireMess.Models.DTOs.Request.Conversation;
 using WireMess.Models.DTOs.Response.Conversation;
 using WireMess.Services.Interfaces;
+using WireMess.Utils.Extensions;
 
 namespace WireMess.Controllers
 {
@@ -53,6 +54,25 @@ namespace WireMess.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all conversations");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<ActionResult<IEnumerable<ConversationDto>>> GetMyConversations()
+        {
+            try
+            {
+                var userId = User.GetUserId();
+                if (userId == null)
+                    return Unauthorized("User not authorized");
+                var conversations = await _conversationService.GetAllByUserIdAsync(userId.Value);
+                return Ok(conversations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting conversations for user ID: {id}", User.GetUserId());
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

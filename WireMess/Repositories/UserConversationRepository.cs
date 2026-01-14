@@ -78,7 +78,7 @@ namespace WireMess.Repositories
                     return false;
                 }
 
-                foreach(var uc in userConversations)
+                foreach (var uc in userConversations)
                 {
                     uc.IsDeleted = true;
                     uc.DeletedAt = DateTime.UtcNow;
@@ -87,7 +87,7 @@ namespace WireMess.Repositories
                 await _context.SaveChangesAsync();
                 return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting all conversations with ID: {conversationId}", conversationId);
                 throw;
@@ -134,6 +134,25 @@ namespace WireMess.Repositories
             }
         }
 
+        public async Task<IEnumerable<Conversation>> GetAllByUserIdAsync(int userId)
+        {
+            try
+            {
+                var conversations = await _context.UserConversations
+                    .Where(uc => uc.UserId == userId && uc.Conversation != null)
+                    .Include(uc => uc.Conversation)
+                    .Select(uc => uc.Conversation!)
+                    .ToListAsync();
+
+                return conversations;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting conversations for UserID: {userId}", userId);
+                throw;
+            }
+        }
+
         public async Task<bool> IsUserExistInConversationAsync(int userId, int conversationId)
         {
             try
@@ -142,7 +161,7 @@ namespace WireMess.Repositories
                     .AsNoTracking()
                     .AnyAsync(uc => uc.UserId == userId && uc.ConversationId == conversationId);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking if user is conversation with "
                     + "UserID: {userId}, ConversationID: {conversationId}", userId, conversationId);
@@ -156,7 +175,7 @@ namespace WireMess.Repositories
             {
                 var userConversation = await _context.UserConversations
                     .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.ConversationId == conversationId);
-                if(userConversation == null)
+                if (userConversation == null)
                 {
                     _logger.LogWarning("User does not exist in this conversation");
                     return false;

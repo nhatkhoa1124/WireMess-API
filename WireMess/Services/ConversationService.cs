@@ -149,6 +149,23 @@ namespace WireMess.Services
             }
         }
 
+        public async Task<IEnumerable<ConversationDto>> GetAllByUserIdAsync(int id)
+        {
+            try
+            {
+                var conversations = await _userConversationRepository.GetAllByUserIdAsync(id);
+                if (conversations == null)
+                    return Enumerable.Empty<ConversationDto>();
+                return conversations.Select(c => c.MapConversationToDto()).ToList();
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting conversations for user ID: {id}", id);
+                throw;
+            }
+        }
+
         public async Task<ConversationDto> GetByIdAsync(int id)
         {
             try

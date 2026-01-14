@@ -5,6 +5,7 @@ namespace WireMess.Repositories.Interfaces
     public interface IUserConversationRepository
     {
         Task<UserConversation?> GetByKeyAsync(int userId, int conversationId);
+        Task<IEnumerable<Conversation>> GetAllByUserIdAsync(int userId);
         Task<UserConversation> CreateAsync(UserConversation userConversation);
         Task<bool> DeleteByKeyAsync(int userId, int conversationId);
         Task<bool> DeleteAllByConversationId(int conversationId);
