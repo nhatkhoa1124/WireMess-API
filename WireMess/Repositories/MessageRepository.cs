@@ -45,7 +45,7 @@ namespace WireMess.Repositories
             }
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteByIdAsync(int id)
         {
             try
             {
@@ -139,6 +139,28 @@ namespace WireMess.Repositories
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating message {messageId}", message.Id);
+                throw;
+            }
+        }
+
+        public async Task<bool> DeleteAllByConversationIdAsync(int conversationId)
+        {
+            try
+            {
+                var messages = await _context.Messages
+                    .Where(m => m.ConversationId == conversationId)
+                    .ToListAsync();
+                if (messages.Any())
+                {
+                    _context.Messages.RemoveRange(messages);
+                    await _context.SaveChangesAsync();
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting messages of conversation ID: {conversationId}", conversationId);
                 throw;
             }
         }

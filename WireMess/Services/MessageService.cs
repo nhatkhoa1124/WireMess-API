@@ -68,7 +68,7 @@ namespace WireMess.Services
                     _logger.LogWarning("Message ID: {id} not found", id);
                     return false;
                 }
-                return await _messageRepository.DeleteAsync(id);
+                return await _messageRepository.DeleteByIdAsync(id);
             }
             catch (Exception ex)
             {

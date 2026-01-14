@@ -11,16 +11,19 @@ namespace WireMess.Services
     public class ConversationService : IConversationService
     {
         private readonly IConversationRepository _conversationRepository;
+        private readonly IMessageRepository _messageRepository;
         private readonly IUserConversationRepository _userConversationRepository;
         private readonly IUserRepository _userRepository;
         private readonly ILogger<ConversationService> _logger;
 
         public ConversationService(IConversationRepository conversationRepository,
+            IMessageRepository messageRepository,
             IUserConversationRepository userConversationRepository,
             IUserRepository userRepository,
             ILogger<ConversationService> logger)
         {
             _conversationRepository = conversationRepository;
+            _messageRepository = messageRepository;
             _userConversationRepository = userConversationRepository;
             _userRepository = userRepository;
             _logger = logger;
@@ -117,12 +120,12 @@ namespace WireMess.Services
                     throw new ArgumentException($"Conversation not found with ID: {id}");
                 var deletedUserConversation = await _userConversationRepository.DeleteAllByConversationId(id);
                 var deletedConversation = await _conversationRepository.DeleteAsync(id);
-
                 if (!deletedConversation || !deletedUserConversation)
                 {
                     _logger.LogWarning("Error deleting conversation by ID: {id}", id);
                     return false;
                 }
+                await _messageRepository.DeleteAllByConversationIdAsync(id);
 
                 return true;
             }

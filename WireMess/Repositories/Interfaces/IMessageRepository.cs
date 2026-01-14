@@ -9,7 +9,8 @@ namespace WireMess.Repositories.Interfaces
         Task<Message?> GetByIdAsync(int id);
         Task<Message?> CreateAsync(Message message);
         Task<Message> UpdateAsync(Message message);
-        Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteByIdAsync(int id);
+        Task<bool> DeleteAllByConversationIdAsync(int conversationId);
 
     }
 }
