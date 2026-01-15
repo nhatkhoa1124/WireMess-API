@@ -11,13 +11,11 @@ namespace WireMess.Repositories
     {
         private readonly AppDbContext _context;
         private readonly ILogger<MessageRepository> _logger;
-        private readonly IFileStorageService _fileStorage;
 
-        public MessageRepository(AppDbContext context, ILogger<MessageRepository> logger, IFileStorageService fileStorage)
+        public MessageRepository(AppDbContext context, ILogger<MessageRepository> logger)
         {
             _context = context;
             _logger = logger;
-            _fileStorage = fileStorage;
         }
 
         public async Task<Message?> CreateAsync(Message message)

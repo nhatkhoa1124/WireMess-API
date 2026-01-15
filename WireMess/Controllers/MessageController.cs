@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WireMess.Models.DTOs.Request.Message;
 using WireMess.Models.DTOs.Response.Message;
-using WireMess.Models.Entities;
 using WireMess.Services.Interfaces;
 
 namespace WireMess.Controllers
