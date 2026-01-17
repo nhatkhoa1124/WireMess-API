@@ -72,7 +72,6 @@ namespace WireMess.Services
                     UseFilename = false
                 };
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-
                 if (uploadResult.Error != null)
                     throw new Exception("Cloudinary upload failed");
                 return uploadResult;
@@ -86,21 +85,29 @@ namespace WireMess.Services
 
         public async Task<string> UploadFromUrlAsync(string imageUrl, string userId)
         {
-            if (string.IsNullOrEmpty(imageUrl))
-                throw new ArgumentException("Image URL is required");
-
-            var uploadParams = new ImageUploadParams
+            try
             {
-                File = new FileDescription(imageUrl),
-                PublicId = $"avatars/{userId}/{Guid.NewGuid()}",
-                Transformation = new Transformation()
-                .Width(400).Height(400).Crop("fill")
-                .Quality("auto:good"),
-                Format = "webp",
-                Folder = "user_avatars"
-            };
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
-            return uploadResult.SecureUrl.ToString();
+                if (string.IsNullOrEmpty(imageUrl))
+                    throw new ArgumentException("Image URL is required");
+
+                var uploadParams = new ImageUploadParams
+                {
+                    File = new FileDescription(imageUrl),
+                    PublicId = $"avatars/{userId}/{Guid.NewGuid()}",
+                    Transformation = new Transformation()
+                    .Width(400).Height(400).Crop("fill")
+                    .Quality("auto:good"),
+                    Format = "webp",
+                    Folder = "user_avatars"
+                };
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                return uploadResult.SecureUrl.ToString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error uploading avatar url");
+                throw;
+            }
         }
     }
 }
