@@ -11,6 +11,7 @@
         public bool IsOnline { get; set; }
         public DateTime LastActive { get; set; }
         public string? AvatarUrl { get; set; }
+        public string? AvatarPublicId { get; set; }
 
         public ICollection<Message> Messages { get; set; } = new List<Message>();
         public ICollection<UserConversation> UserConversations { get; set; } = new List<UserConversation>();

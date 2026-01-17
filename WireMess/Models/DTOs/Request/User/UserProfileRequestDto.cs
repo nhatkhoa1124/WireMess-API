@@ -27,11 +27,6 @@ namespace WireMess.Models.DTOs.Request.User
             get => _phoneNumber;
             set => _phoneNumber = string.IsNullOrWhiteSpace(value) ? null : value;
         }
-        [Url]
-        public string? AvatarUrl
-        {
-            get => _avatarUrl;
-            set => _avatarUrl = string.IsNullOrWhiteSpace(value) ? null : value;
-        }
+        public IFormFile? Avatar { get; set; }
     }
 }
