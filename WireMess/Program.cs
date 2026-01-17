@@ -64,6 +64,7 @@ namespace WireMess
             builder.Services.AddScoped<IJwtService, JwtService>();
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();
             builder.Services.AddScoped<IConversationService, ConversationService>();
             builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
