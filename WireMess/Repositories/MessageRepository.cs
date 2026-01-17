@@ -162,5 +162,19 @@ namespace WireMess.Repositories
                 throw;
             }
         }
+
+        public async Task AddAttachmentAsync(int messageId, Attachment attachment)
+        {
+            try
+            {
+                await _context.Attachments.AddAsync(attachment);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding attachment to message {MessageId}", messageId);
+                throw;
+            }
+        }
     }
 }
