@@ -1,16 +1,17 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using WireMess.Data;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using WireMess.Repositories.Interfaces;
-using WireMess.Repositories;
-using WireMess.Services.Interfaces;
-using WireMess.Utils.AuthUtil.Interfaces;
-using WireMess.Utils.AuthUtil;
-using WireMess.Services;
 using Microsoft.OpenApi.Models;
+using System.Text;
+using WireMess.Data;
 using WireMess.Hubs;
+using WireMess.Repositories;
+using WireMess.Repositories.Interfaces;
+using WireMess.Services;
+using WireMess.Services.Interfaces;
+using WireMess.Utils.AuthUtil;
+using WireMess.Utils.AuthUtil.Interfaces;
+using WireMess.Utils.Settings;
 
 namespace WireMess
 {
@@ -25,8 +26,9 @@ namespace WireMess
             builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(builder.Configuration.GetConnectionString("WireMessDb")));
 
-            // Configure JwtSettings from appsettings.json
+            // Configure settings from appsettings.json
             builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
+            builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("Cloudinary"));
 
             var jwtSettings = builder.Configuration.GetSection("Jwt");
             var secret = jwtSettings["Secret"] ?? throw new ArgumentNullException("JWT Secret is not configured");
@@ -63,6 +65,7 @@ namespace WireMess
             builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IConversationService, ConversationService>();
+            builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
             builder.Services.AddCors(options =>
             {
