@@ -11,6 +11,9 @@ namespace WireMess.Utils.Extensions
             {
                 Id = message.Id,
                 Content = message.Content,
+                Attachment = message.Attachment?.MapAttachmentToDto(),
+                SenderId = message.SenderId,
+                ConversationId = message.ConversationId,
                 CreatedAt = message.CreatedAt,
                 UpdatedAt = message.UpdatedAt
             };
