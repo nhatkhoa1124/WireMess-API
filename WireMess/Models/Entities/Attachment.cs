@@ -7,6 +7,8 @@
         public long FileSize { get; set; }
         public int MessageId { get; set; }
         public string StoragePath { get; set; }
+        public string? PublicId { get; set; }
+        public string? FileType { get; set; }
 
         public Message? Message { get; set; }
     }
