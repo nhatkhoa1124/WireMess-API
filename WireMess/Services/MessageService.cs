@@ -11,18 +11,28 @@ namespace WireMess.Services
     {
         private readonly IMessageRepository _messageRepository;
         private readonly IConversationRepository _conversationRepository;
+        private readonly ICloudinaryService _cloudinaryService;
         private readonly ILogger<MessageService> _logger;
 
-        public MessageService(IMessageRepository messageRepository, ILogger<MessageService> logger)
+        public MessageService(
+            IMessageRepository messageRepository, 
+            IConversationRepository conversationRepository,
+            ICloudinaryService cloudinaryService,
+            ILogger<MessageService> logger)
         {
             _messageRepository = messageRepository;
+            _conversationRepository = conversationRepository;
+            _cloudinaryService = cloudinaryService;
             _logger = logger;
         }
 
-        public async Task<MessageDto?> CreateAsync(MessageCreateDto request, int senderId)
+        public async Task<List<MessageDto>> CreateAsync(MessageCreateDto request, int senderId)
         {
             try
             {
+                if (!request.IsValid())
+                    throw new ArgumentException("Message must contain either text or an attachment");
+
                 var conversation = await _conversationRepository.GetByIdAsync(request.ConversationId);
                 if (conversation == null)
                 {
@@ -30,26 +40,78 @@ namespace WireMess.Services
                     return null;
                 }
 
-                var newMessage = new Message
+                var createdMessages = new List<MessageDto>();
+                var hasContent = !string.IsNullOrWhiteSpace(request.Content);
+                var hasAttachment = request.Attachment != null;
+                
+                if(hasContent)
                 {
-                    Content = request.Content,
-                    SenderId = senderId,
-                    ConversationId = request.ConversationId,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
+                    var textMessage = new Message
+                    {
+                        Content = request.Content,
+                        SenderId = senderId,
+                        ConversationId = request.ConversationId,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
 
-                var createdMessage = await _messageRepository.CreateAsync(newMessage);
-                if (createdMessage == null)
+                    var createdTextMessage = await _messageRepository.CreateAsync(textMessage);
+                    if (createdTextMessage != null)
+                    {
+                        createdMessages.Add(createdTextMessage.MapMessageToDto());
+                    }
+                }
+
+                if (hasAttachment)
                 {
-                    _logger.LogError("Failed to create message");
-                    return null;
+                    var attachmentMessage = new Message
+                    {
+                        Content = null,
+                        SenderId = senderId,
+                        ConversationId = request.ConversationId,
+                        CreatedAt = DateTime.UtcNow.AddMilliseconds(1),
+                        UpdatedAt = DateTime.UtcNow.AddMilliseconds(1)
+                    };
+
+                    var createdAttachmentMessage = await _messageRepository.CreateAsync(attachmentMessage);
+                    if (createdAttachmentMessage == null)
+                    {
+                        _logger.LogError("Failed to create attachment message");
+                        return createdMessages;
+                    }
+                    try
+                    {
+                        var uploadResult = await _cloudinaryService.UploadAttachmentAsync(
+                            request.Attachment,
+                            createdAttachmentMessage.Id
+                            );
+                        var attachment = new Attachment()
+                        {
+                            FileName = request.Attachment.FileName,
+                            FileSize = request.Attachment.Length,
+                            StoragePath = uploadResult.SecureUrl.ToString(),
+                            PublicId = uploadResult.PublicId,
+                            FileType = request.Attachment.ContentType,
+                            MessageId = createdAttachmentMessage.Id,
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        await _messageRepository.AddAttachmentAsync(createdAttachmentMessage.Id, attachment);
+
+                        var messageWithAttachment = await _messageRepository.GetByIdAsync(createdAttachmentMessage.Id);
+                        createdMessages.Add(messageWithAttachment.MapMessageToDto());
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to upload attachment for message {id}", createdAttachmentMessage.Id);
+                        await _messageRepository.DeleteByIdAsync(createdAttachmentMessage.Id);
+                    }
                 }
 
                 conversation.LastMessageAt = DateTime.UtcNow;
                 await _conversationRepository.UpdateAsync(conversation);
 
-                return createdMessage.MapMessageToDto();
+                return createdMessages;
             }
             catch (Exception ex)
             {

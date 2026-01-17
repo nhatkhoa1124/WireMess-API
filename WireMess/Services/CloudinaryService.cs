@@ -22,6 +22,27 @@ namespace WireMess.Services
             _logger = logger;
         }
 
+        public async Task<DeletionResult> DeleteAttachmentAsync(string publicId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(publicId))
+                    throw new ArgumentException("Public ID is required");
+                
+                var deleteParams = new DeletionParams(publicId)
+                {
+                    ResourceType = ResourceType.Raw,
+                    Invalidate = true
+                };
+                return await _cloudinary.DestroyAsync(deleteParams);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting attachment from Cloudinary");
+                throw;
+            }
+        }
+
         public async Task<DeletionResult> DeleteAvatarAsync(string publicId)
         {
             try
@@ -37,7 +58,42 @@ namespace WireMess.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting avatar");
+                _logger.LogError(ex, "Error deleting avatar from Cloudinary");
+                throw;
+            }
+        }
+
+        public async Task<RawUploadResult> UploadAttachmentAsync(IFormFile file, int messageId)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                    throw new ArgumentException("No file provided");
+
+                if (file.Length > 50 * 1024 * 1024)
+                    throw new ArgumentException("File size exceeds 50MB limit");
+
+                await using var stream = file.OpenReadStream();
+                var uploadParams = new RawUploadParams
+                {
+                    File = new FileDescription(file.FileName, stream),
+                    PublicId = $"attachments/message_{messageId}/{Guid.NewGuid()}",
+                    Tags = $"attachment, message_{messageId}",
+                    UseFilename = true,
+                    UniqueFilename = true
+                };
+
+                var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                if (uploadResult.Error != null)
+                {
+                    _logger.LogError("Cloudinary upload failed: {Error}", uploadResult.Error);
+                    throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");
+                }
+                return uploadResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading attachment to Cloudinary");
                 throw;
             }
         }
@@ -73,12 +129,15 @@ namespace WireMess.Services
                 };
                 var uploadResult = await _cloudinary.UploadAsync(uploadParams);
                 if (uploadResult.Error != null)
-                    throw new Exception("Cloudinary upload failed");
+                {
+                    _logger.LogError("Cloudinary upload failed: {Error}", uploadResult.Error);
+                    throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");
+                }
                 return uploadResult;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error uploading Cloudinary file");
+                _logger.LogError(ex, "Error uploading avatar to Cloudinary");
                 throw;
             }
         }
@@ -105,7 +164,7 @@ namespace WireMess.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error uploading avatar url");
+                _logger.LogError("Error uploading avatar url to Cloudinary");
                 throw;
             }
         }

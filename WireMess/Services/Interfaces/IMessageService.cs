@@ -6,7 +6,7 @@ namespace WireMess.Services.Interfaces
 {
     public interface IMessageService
     {
-        Task<MessageDto?> CreateAsync(MessageCreateDto request, int senderId);
+        Task<List<MessageDto>> CreateAsync(MessageCreateDto request, int senderId);
         Task<MessageDto?> GetByIdAsync(int id);
         Task<IEnumerable<MessageDto>> GetByConversationIdAsync(int conversationId, int page = 1, int pageSize = 50);
         Task<MessageDto?> UpdateByIdAsync(int id, MessageUpdateDto request);
