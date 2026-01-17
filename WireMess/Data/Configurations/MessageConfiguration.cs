@@ -16,11 +16,11 @@ namespace WireMess.Data.Configurations
 
             builder.Property(m => m.Content)
                 .HasMaxLength(2000)
-                .IsRequired();
+                .IsRequired(false);
 
-            builder.HasMany(m => m.Attachments)
+            builder.HasOne(m => m.Attachment)
                 .WithOne(a => a.Message)
-                .HasForeignKey(a => a.MessageId)
+                .HasForeignKey<Attachment>(a => a.MessageId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

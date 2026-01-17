@@ -21,6 +21,15 @@ namespace WireMess.Data.Configurations
             builder.Property(a => a.StoragePath)
                 .HasMaxLength(500)
                 .IsRequired();
+            builder.Property(a => a.PublicId)
+                .HasMaxLength(255)
+                .IsRequired(false);
+            builder.Property(a => a.FileType)
+                .HasMaxLength(100)
+                .IsRequired(false);
+
+            builder.HasIndex(a => a.MessageId)
+                .IsUnique();
         }
     }
 }
