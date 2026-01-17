@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using WireMess.Models.DTOs.Request.Message;
 using WireMess.Models.DTOs.Response.Message;
 using WireMess.Services.Interfaces;
+using WireMess.Utils.Extensions;
 
 namespace WireMess.Controllers
 {
@@ -17,6 +18,35 @@ namespace WireMess.Controllers
         {
             _messageService = messageService;
             _logger = logger;
+        }
+
+        [Authorize]
+        [HttpPost]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<List<MessageDto>>> CreateAsync([FromForm] MessageCreateDto request)
+        {
+            try
+            {
+                if (!request.IsValid())
+                    return BadRequest("Messag must contain either text or attachment");
+
+                var userId = User.GetUserId();
+                if (userId == null)
+                    return Unauthorized("User not authorized");
+                var messages = await _messageService.CreateAsync(request, userId.Value);
+                if (messages == null || !messages.Any())
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError);
+                }
+
+                var location = Url.Action(nameof(GetByIdAsync), new { id = messages.First().Id });
+                return Created(location, messages);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating message");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         [Authorize]

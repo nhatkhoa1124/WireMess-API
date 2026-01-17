@@ -144,8 +144,8 @@ namespace WireMess.Hubs
                     return;
                 }
 
-                _logger.LogInformation("User {userId} sent message {messageId} to conversation {conversationId}",
-                    senderId, createdMessage.Id, request.ConversationId);
+                _logger.LogInformation("User {userId} sent messages {messages} to conversation {conversationId}",
+                    senderId, createdMessage, request.ConversationId);
 
                 await Clients.Group($"conversation_{request.ConversationId}")
                     .SendAsync("ReceiveMessage", createdMessage);

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using WireMess.Models.DTOs.Request.Conversation;
 using WireMess.Models.DTOs.Response.Conversation;
+using WireMess.Models.Entities;
 using WireMess.Services.Interfaces;
 using WireMess.Utils.Extensions;
 
@@ -31,7 +32,8 @@ namespace WireMess.Controllers
                 if (createdConversation == null)
                     return StatusCode(StatusCodes.Status500InternalServerError);
 
-                return Created($"/api/conversations/{createdConversation.Id}", createdConversation);
+                var location = Url.Action(nameof(GetByIdAsync), new { id = createdConversation.Id });
+                return Created(location, createdConversation);
             }
             catch (Exception ex)
             {
