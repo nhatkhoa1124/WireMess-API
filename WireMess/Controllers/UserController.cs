@@ -113,8 +113,9 @@ namespace WireMess.Controllers
         }
 
         [Authorize]
-        [HttpPut("me/update")]
-        public async Task<ActionResult<UserProfileResponseDto>> UpdateCurrentUserProfile(UserProfileRequestDto request)
+        [HttpPut("profile")]
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<UserProfileResponseDto>> UpdateProfile([FromForm] UserProfileRequestDto request)
         {
             try
             {
@@ -126,6 +127,16 @@ namespace WireMess.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 return Ok(updatedUser);
             }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "User not found");
+                return NotFound("User not found");
+            }
+            catch(ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid avatar file");
+                return BadRequest("Invalid file");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user profile ID: {userId}", User.GetUserId());
@@ -135,7 +146,7 @@ namespace WireMess.Controllers
 
         [Authorize]
         [HttpPut("update/{id}")]
-        public async Task<ActionResult<UserProfileResponseDto>> UpdateUserProfileById(int id, UserProfileRequestDto request)
+        public async Task<ActionResult<UserProfileResponseDto>> UpdateProfileById(int id, UserProfileRequestDto request)
         {
             try
             {

@@ -9,11 +9,16 @@ namespace WireMess.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ICloudinaryService _cloudinaryService;
         private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository, ILogger<UserService> logger)
+        public UserService(
+            IUserRepository userRepository,
+            ICloudinaryService cloudinaryService,
+            ILogger<UserService> logger)
         {
             _userRepository = userRepository;
+            _cloudinaryService = cloudinaryService;
             _logger = logger;
         }
 
@@ -108,22 +113,49 @@ namespace WireMess.Services
                 if (user == null)
                     throw new ArgumentException($"User {userId} not found");
 
-                user.Username = request.Username ?? user.Username;
-                user.Email = request.Email ?? user.Email;
-                user.PhoneNumber = request.PhoneNumber ?? user.PhoneNumber;
-                user.AvatarUrl = request.AvatarUrl ?? user.AvatarUrl;
-                user.UpdatedAt = DateTime.UtcNow;
+                if (!string.IsNullOrWhiteSpace(request.Username))
+                    user.Username = request.Username;
+                if (!string.IsNullOrWhiteSpace(request.Email))
+                    user.Email = request.Email;
+                if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
+                    user.PhoneNumber = request.PhoneNumber;
 
+                if (request.Avatar != null)
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(user.AvatarPublicId))
+                        {
+                            await _cloudinaryService.DeleteAvatarAsync(user.AvatarPublicId);
+                        }
+
+                        var uploadResult = await _cloudinaryService.UploadAvatarAsync(
+                            request.Avatar,
+                            userId.ToString());
+
+                        user.AvatarUrl = uploadResult.SecureUrl.ToString();
+                        user.AvatarPublicId = uploadResult.PublicId;
+                    }
+                    catch(Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to upload avatar for user ID: {userId}", userId);
+                        throw new Exception("Failed to upload avatar", ex);
+                    }
+                }
+                user.UpdatedAt = DateTime.UtcNow;
                 var updatedUser = await _userRepository.UpdateAsync(user);
                 if (updatedUser == null)
                     throw new InvalidOperationException($"Error updating user ID: {userId}");
+
                 return new UserProfileResponseDto
                 {
-                    Id = user.Id,
+                    Id = updatedUser.Id,
                     Username = updatedUser.Username,
                     Email = updatedUser.Email,
                     PhoneNumber = updatedUser.PhoneNumber,
-                    AvatarUrl = updatedUser.AvatarUrl
+                    AvatarUrl = updatedUser.AvatarUrl,
+                    IsOnline = updatedUser.IsOnline,
+                    LastActive  = updatedUser.LastActive
                 };
 
             }

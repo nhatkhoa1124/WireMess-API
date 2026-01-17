@@ -32,6 +32,9 @@ namespace WireMess.Data.Configurations
             builder.Property(u => u.AvatarUrl)
                 .HasMaxLength(500)
                 .IsRequired(false);
+            builder.Property(u => u.AvatarPublicId)
+                .HasMaxLength(255)
+                .IsRequired(false);
             builder.Property(u => u.IsOnline)
                 .HasDefaultValue(false);
             builder.Property(u => u.LastActive)
