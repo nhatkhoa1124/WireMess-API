@@ -40,6 +40,8 @@ namespace WireMess
             })
             .AddJwtBearer(options =>
             {
+                options.MapInboundClaims = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -50,6 +52,38 @@ namespace WireMess
                     ValidAudience = jwtSettings["Audience"],
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.Zero
+                };
+
+                // Configure JWT for SignalR - read token from query string for all SignalR requests
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var path = context.HttpContext.Request.Path;
+
+                        // Check if this is a SignalR request
+                        if (path.StartsWithSegments("/chatHub"))
+                        {
+                            // Try to get token from query string first (SignalR sends it here)
+                            var accessToken = context.Request.Query["access_token"].FirstOrDefault();
+
+                            if (!string.IsNullOrEmpty(accessToken))
+                            {
+                                context.Token = accessToken;
+                                Console.WriteLine($"[SignalR Auth] Token extracted from query string for path: {path}");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"[SignalR Auth] No token in query string for path: {path}");
+                            }
+                        }
+                        return Task.CompletedTask;
+                    },
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine($"[SignalR Auth] Authentication failed: {context.Exception.Message}");
+                        return Task.CompletedTask;
+                    }
                 };
             });
             builder.Services.AddAuthorization();
@@ -177,6 +211,7 @@ namespace WireMess
             }
 
             app.UseHttpsRedirection();
+            app.UseRouting();
             app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
